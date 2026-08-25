@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api import health
+from app.api import health, nlp, audio
 from app.core.exceptions import AIException, ai_exception_handler, generic_exception_handler
 
 def create_app() -> FastAPI:
@@ -29,6 +29,8 @@ def create_app() -> FastAPI:
 
     # Include routers
     app.include_router(health.router, prefix=settings.API_V1_STR, tags=["health"])
+    app.include_router(nlp.router, prefix=settings.API_V1_STR, tags=["nlp"])
+    app.include_router(audio.router, prefix=settings.API_V1_STR, tags=["audio"])
 
     return app
 

@@ -1,13 +1,13 @@
 from typing import List, Union
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import AnyHttpUrl, field_validator
+from pydantic import field_validator
 
 class Settings(BaseSettings):
     APP_NAME: str = "Aurevia AI Service"
     VERSION: str = "0.1.0"
     ENVIRONMENT: str = "development"
     API_V1_STR: str = "/api/v1"
-    
+
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["*"]
 
@@ -22,6 +22,32 @@ class Settings(BaseSettings):
 
     # Behavior
     DEMO_MODE: bool = True
+
+    # ------------------------------------------------------------------
+    # Audio upload settings
+    # ------------------------------------------------------------------
+    AUDIO_MAX_SIZE_MB: int = 50
+    AUDIO_ALLOWED_EXTENSIONS: List[str] = ["wav", "mp3", "ogg", "m4a", "flac"]
+    AUDIO_ALLOWED_MIME_TYPES: List[str] = [
+        "audio/wav", "audio/x-wav", "audio/wave",
+        "audio/mpeg", "audio/mp3",
+        "audio/ogg", "application/ogg",
+        "audio/mp4", "audio/x-m4a",
+        "audio/flac", "audio/x-flac",
+    ]
+
+    # ------------------------------------------------------------------
+    # Object storage settings
+    # ------------------------------------------------------------------
+    STORAGE_PROVIDER: str = "local"          # "local" | "minio"
+    LOCAL_STORAGE_PATH: str = "./data/audio"
+
+    # MinIO (only used when STORAGE_PROVIDER="minio")
+    MINIO_ENDPOINT: str = "localhost:9000"
+    MINIO_ACCESS_KEY: str = ""
+    MINIO_SECRET_KEY: str = ""
+    MINIO_BUCKET_NAME: str = "aurevia-audio"
+    MINIO_SECURE: bool = False
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
