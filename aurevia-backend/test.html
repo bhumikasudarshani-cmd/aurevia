@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurevia Chat Test</title>
+</head>
+<body style="font-family: sans-serif; padding: 20px;">
+    <h2>Aurevia Live Chat Test 🚀</h2>
+    <div id="status" style="margin-bottom: 10px; font-weight: bold;">🔴 Disconnected</div>
+    <input type="text" id="messageInput" placeholder="Type a message..." style="padding: 5px; width: 300px;">
+    <button id="sendBtn" style="padding: 5px 15px;">Send</button>
+    <ul id="messages" style="background: #f4f4f4; padding: 20px; border-radius: 8px; min-height: 200px;"></ul>
+
+    <script>
+        const userId = "User_" + Math.floor(Math.random() * 1000);
+        const statusEl = document.getElementById('status');
+        const messagesEl = document.getElementById('messages');
+        const input = document.getElementById('messageInput');
+
+        // NOTE: replace test_token with a real per-session token issued by your auth flow
+        // before this leaves local development.
+        const ws = new WebSocket(`ws://127.0.0.1:8000/api/v1/ws/${userId}?token=test_token`);
+
+        ws.onopen = () => {
+            statusEl.textContent = "🟢 Connected as " + userId;
+            addMessage("Connected as " + userId);
+        };
+
+        ws.onclose = () => {
+            statusEl.textContent = "🔴 Disconnected";
+            addMessage("Connection closed.");
+        };
+
+        ws.onerror = (err) => {
+            addMessage("⚠️ WebSocket error — check console.");
+            console.error("WebSocket error:", err);
+        };
+
+        ws.onmessage = (event) => {
+            let data;
+            try {
+                data = JSON.parse(event.data);
+            } catch {
+                addMessage("⚠️ Received malformed message.");
+                return;
+            }
+            switch (data.type) {
+                case 'message':
+                    addMessage(`💬 ${data.from}: ${data.content}`);
+                    break;
+                case 'ack':
+                    addMessage(`✅ You sent: ${data.content}`);
+                    break;
+                case 'system':
+                    addMessage(`⚙️ System: ${data.content}`);
+                    break;
+                default:
+                    addMessage(`❓ Unknown message type: ${data.type}`);
+            }
+        };
+
+        function sendMessage() {
+            if (ws.readyState !== WebSocket.OPEN) {
+                addMessage("⚠️ Not connected — message not sent.");
+                return;
+            }
+            if (input.value.trim()) {
+                ws.send(input.value);
+                input.value = '';
+            }
+        }
+
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        function addMessage(text) {
+            const li = document.createElement('li');
+            li.style.marginBottom = "10px";
+            li.textContent = text; // keep textContent — never switch to innerHTML here
+            messagesEl.appendChild(li);
+        }
+    </script>
+</body>
+</html>
