@@ -1,34 +1,55 @@
 import { create } from 'zustand'
-import type { CaseRecord, Tier } from '../data/mockCases'
+import type { CaseRecord } from '../data/mockCases'
 import type { NotificationItem } from '../data/mockUsers'
 
-interface AppState {
-  // --- Cases (single source of truth for Dashboard + Case Management) ---
+type AuthRole = 'counselor' | 'police' | 'citizen' | null
+
+interface AuthUser {
+  email: string
+  role: AuthRole
+}
+
+interface CaseSlice {
   cases: CaseRecord[]
   setCases: (cases: CaseRecord[]) => void
-  updateCaseRisk: (caseId: string, newScore: number, tier?: Tier) => void
+  updateCaseRisk: (caseId: string, newScore: number, tier?: CaseRecord['tier']) => void
   updateCaseStatus: (caseId: string, status: CaseRecord['status']) => void
   updateCaseAssignee: (caseId: string, assignedTo: string) => void
+}
 
-  // --- Notifications ---
+interface NotificationSlice {
   notifications: NotificationItem[]
   setNotifications: (notifications: NotificationItem[]) => void
   addLiveNotification: (notification: NotificationItem) => void
   markAllNotificationsRead: () => void
 }
 
-export const useStore = create<AppState>((set) => ({
+interface AuthSessionSlice {
+  user: AuthUser | null
+  isAuthenticated: boolean
+  login: (email: string, role: string) => void
+  logout: () => void
+}
+
+const normalizeRole = (role: string): Exclude<AuthRole, null> | null => {
+  if (role === 'counselor' || role === 'police' || role === 'citizen') return role
+  return null
+}
+
+export type AppStoreState = CaseSlice & NotificationSlice & AuthSessionSlice
+
+export const useStore = create<AppStoreState>((set) => ({
   cases: [],
   notifications: [],
+  user: null,
+  isAuthenticated: false,
 
   setCases: (cases) => set({ cases }),
 
   updateCaseRisk: (caseId, newScore, tier) =>
     set((state) => ({
       cases: state.cases.map((c) =>
-        c.id === caseId
-          ? { ...c, score: newScore, tier: tier ?? c.tier, lastUpdate: 'just now' }
-          : c
+        c.id === caseId ? { ...c, score: newScore, tier: tier ?? c.tier, lastUpdate: 'just now' } : c
       ),
     })),
 
@@ -53,4 +74,16 @@ export const useStore = create<AppState>((set) => ({
     set((state) => ({
       notifications: state.notifications.map((n) => ({ ...n, read: true })),
     })),
+
+  login: (email, role) =>
+    set({
+      user: { email, role: normalizeRole(role) },
+      isAuthenticated: true,
+    }),
+
+  logout: () =>
+    set({
+      user: null,
+      isAuthenticated: false,
+    }),
 }))
