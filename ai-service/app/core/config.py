@@ -22,6 +22,18 @@ class Settings(BaseSettings):
 
     # Behavior
     DEMO_MODE: bool = True
+    
+    # ------------------------------------------------------------------
+    # AI Models (Phase 4)
+    # ------------------------------------------------------------------
+    AI_MODE: str = "demo" # "demo" or "real"
+    AI_DEVICE: str = "cpu" # "cpu", "cuda", "mps"
+
+    NLP_MODEL_NAME: str = "distilbert-base-uncased-finetuned-sst-2-english"
+    EMBEDDING_MODEL_NAME: str = "all-MiniLM-L6-v2"
+    STT_MODEL_NAME: str = "openai/whisper-tiny"
+
+    AI_MAX_INPUT_LENGTH: int = 10000
 
     # ------------------------------------------------------------------
     # Audio upload settings

@@ -13,8 +13,8 @@ from fastapi import status
 from app.nlp.preprocess import preprocess, validate_length
 from app.nlp.tokenizer import tokenize
 from app.nlp.language import detect_language
-from app.nlp.models import get_nlp_model, NLPModelResult
-from app.nlp.embeddings import get_embedding_provider, EmbeddingResult
+from app.intelligence.service import resolve_nlp_model, resolve_embedding_provider
+
 from app.schemas.nlp import (
     NLPAnalyzeResponse,
     LanguageInfo,
@@ -95,8 +95,8 @@ def run_nlp_pipeline(text: str) -> NLPAnalyzeResponse:
 
     # 5. NLP model analysis
     try:
-        model = get_nlp_model()
-        model_result: NLPModelResult = model.analyze(prep.normalized_text, tokens)
+        nlp_model = resolve_nlp_model()
+        model_result = nlp_model.analyze(prep.normalized_text, tokens)
     except Exception as exc:
         logger.error("NLP model analysis failed: %s", type(exc).__name__)
         raise AIException(
@@ -107,8 +107,8 @@ def run_nlp_pipeline(text: str) -> NLPAnalyzeResponse:
 
     # 6. Embedding
     try:
-        provider = get_embedding_provider()
-        embedding: EmbeddingResult = provider.embed(prep.normalized_text)
+        embedding_provider = resolve_embedding_provider()
+        embedding = embedding_provider.embed(prep.normalized_text)
     except Exception as exc:
         logger.error("Embedding failed: %s", type(exc).__name__)
         raise AIException(

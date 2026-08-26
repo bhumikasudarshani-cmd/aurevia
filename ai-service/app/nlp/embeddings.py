@@ -136,6 +136,83 @@ class DemoEmbeddingProvider(BaseEmbeddingProvider):
         return vector
 
 
+class SentenceTransformerEmbeddingProvider(BaseEmbeddingProvider):
+    """
+    Real Embedding Provider using SentenceTransformers.
+    Generates semantic vectors for text.
+    Loads lazily via the global model_manager.
+    """
+    
+    def __init__(self, model_name: str, device: str = "cpu") -> None:
+        self._model_name = model_name
+        self._device_str = device
+        self._dimensions = 384 # default for miniLM, could be fetched dynamically
+
+        def _load_st():
+            try:
+                import torch
+                from sentence_transformers import SentenceTransformer
+            except ImportError:
+                raise RuntimeError("Missing required dependencies for real embeddings (sentence-transformers, torch).")
+
+            device_name = "cpu"
+            if self._device_str.lower() in ("cuda", "gpu") and torch.cuda.is_available():
+                device_name = "cuda"
+            
+            logger.info("Initializing SentenceTransformer: %s on %s", self._model_name, device_name)
+            # Use trust_remote_code=False for security, unless specifically required by the model
+            return SentenceTransformer(self._model_name, device=device_name)
+            
+        from app.models.manager import model_manager
+        model_manager.register_loader(f"embedding_{self._model_name}", _load_st)
+
+    @property
+    def name(self) -> str:
+        return f"sentence-transformers/{self._model_name}"
+
+    @property
+    def dimensions(self) -> int:
+        return self._dimensions
+
+    def embed(self, text: str) -> EmbeddingResult:
+        if not text.strip():
+            return EmbeddingResult(
+                provider=self.name,
+                dimensions=self.dimensions,
+                vector=[0.0] * self.dimensions,
+                is_demo=False,
+            )
+
+        from app.models.manager import model_manager
+        
+        try:
+            model = model_manager.get_model(f"embedding_{self._model_name}")
+            
+            # SentenceTransformers handles tokenization and truncation internally
+            # We encode the text and get a numpy array back
+            embeddings = model.encode(text, convert_to_numpy=True)
+            
+            # Convert to float list for JSON serialization
+            vector = [float(v) for v in embeddings]
+            
+            # Dynamically update dimensions if it's the first time
+            if self._dimensions != len(vector):
+                self._dimensions = len(vector)
+                
+            return EmbeddingResult(
+                provider=self.name,
+                dimensions=self.dimensions,
+                vector=vector,
+                is_demo=False,
+            )
+        except ImportError:
+            logger.error("sentence-transformers or torch not installed. Cannot run SentenceTransformerEmbeddingProvider.")
+            raise RuntimeError("Missing required dependencies for real embeddings (sentence-transformers, torch).")
+        except Exception as exc:
+            logger.error("SentenceTransformer inference failed: %s", exc)
+            raise RuntimeError(f"Embedding generation failed: {exc}") from exc
+
+
 # ---------------------------------------------------------------------------
 # Module-level default instance
 # ---------------------------------------------------------------------------

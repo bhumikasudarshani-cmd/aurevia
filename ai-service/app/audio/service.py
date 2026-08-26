@@ -25,7 +25,7 @@ from app.core.exceptions import AIException
 from app.audio.validator import AudioFileValidator, AudioValidationError
 from app.audio.metadata import AudioMetadataExtractor
 from app.audio.features import AudioFeatureExtractor
-from app.audio.transcription import get_transcription_provider
+from app.intelligence.service import resolve_transcription_provider
 
 from app.storage.minio import get_storage
 from app.schemas.audio import (
@@ -109,7 +109,7 @@ def run_audio_pipeline(
         features = AudioFeatures(rms=0.0, zero_crossing_rate=0.0, is_demo=True)
 
     # 5. Transcription
-    transcription_provider = get_transcription_provider()
+    transcription_provider = resolve_transcription_provider()
     try:
         transcription = transcription_provider.transcribe(
             data, validation.detected_format, meta.sample_rate

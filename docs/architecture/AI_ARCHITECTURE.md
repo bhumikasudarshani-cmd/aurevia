@@ -1,5 +1,28 @@
 # Aurevia AI Architecture
 
+## System Architecture
+
+```text
+                    Aurevia AI
+                         │
+          ┌──────────────┴──────────────┐
+          ↓                             ↓
+       TEXT PIPELINE                AUDIO PIPELINE
+          │                             │
+     Preprocessing                Audio Validation & Storage
+          │                             │
+     NLP Model (Sentiment)        Audio Features & STT
+          │                             │
+     Embeddings (Semantic)        Transcription
+          │                             │
+          └──────────────┬──────────────┘
+                         ↓
+                  AI Intelligence (Phase 4 Orchestration)
+                         │
+                         ↓
+                 Structured Output
+```
+
 ## Overview
 The Aurevia AI Service is a microservice designed to support human reviewers by providing AI-assisted decision-support metrics based on textual, auditory, structured, and historical data.
 
@@ -20,6 +43,27 @@ The Aurevia AI Service is a microservice designed to support human reviewers by 
 - `storage/`: Interfaces with PostgreSQL, pgvector, and MinIO.
 
 *(More detailed architecture diagrams and documentation will be added as phases progress)*
+
+---
+
+### Phase 3: Audio AI & Storage Foundation
+Completed. Modular audio-processing pipeline supporting:
+1. Validation (MIME, Magic-Bytes).
+2. Object Storage (`LocalObjectStorage`, `MinIOObjectStorage`).
+3. Audio Metadata & Feature extraction.
+
+### Phase 4: Real AI/ML Model Integration
+Completed. Integrated actual pretrained models via Hugging Face and SentenceTransformers:
+1. **Model Manager (`app/models/manager.py`)**: Thread-safe lazy-loading of models to conserve RAM on startup.
+2. **NLP Model**: `distilbert-base-uncased-finetuned-sst-2-english` (Binary Sentiment Analysis).
+3. **Embedding Model**: `all-MiniLM-L6-v2` (384-dimension Semantic Embeddings).
+4. **Speech-to-Text**: `openai/whisper-tiny` (Multilingual Transcription).
+5. **AI Orchestration**: Orchestrates text and audio processing based on configuration (`AI_MODE=real` vs `AI_MODE=demo`).
+
+All models run offline and on CPU by default. No training datasets are required. Models must be explicitly downloaded using `python -m app.models.download`.
+
+### Phase 5+: Advanced Analytics & RAG
+*(Planned)* - Context-aware analysis, Vector DB integration, and advanced risk scoring.
 
 ---
 
