@@ -29,7 +29,7 @@ async def shutdown_event():
     await redis_manager.disconnect()
 
 # Yeh line app define hone ke baad aani chahiye
-app.include_router(websocket_router, prefix="/api/v1")
+#app.include_router(websocket_router, prefix="/api/v1")
 
 # --- Middleware ---
 # allow_origins: exact matches only (safe with allow_credentials=True).
