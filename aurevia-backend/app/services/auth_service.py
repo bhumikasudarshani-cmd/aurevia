@@ -14,7 +14,8 @@ def register_user(db: Session, payload: UserCreate) -> User:
     if existing:
         raise AuthError("An account with this email already exists.")
 
-        user = User(
+    # 'if existing:' ke BAHAAR hona chahiye:
+    user = User(
         email=payload.email,
         hashed_password=hash_password(payload.password),
         role="citizen",
