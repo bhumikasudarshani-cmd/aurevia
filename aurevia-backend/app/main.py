@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.middleware.error_handler import register_exception_handlers
 from app.middleware.logging import RequestLoggingMiddleware
 #from app.api.websocket import router as websocket_router
-from app.cache.redis_client import redis_manager
+#from app.cache.redis_client import redis_manager
 logging.basicConfig(level=logging.INFO if not settings.debug else logging.DEBUG)
 
 # NOTE: table creation is now handled by Alembic migrations (see alembic/),
