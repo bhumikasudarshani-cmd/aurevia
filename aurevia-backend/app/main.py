@@ -20,13 +20,13 @@ app = FastAPI(
     description="Backend API for the Aurevia mental health app.",
     version="0.1.0",
 )
-@app.on_event("startup")
-async def startup_event():
-    await redis_manager.connect()
+#@app.on_event("startup")
+#async def startup_event():
+    #await redis_manager.connect()
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    await redis_manager.disconnect()
+#@app.on_event("shutdown")
+#async def shutdown_event():
+    #await redis_manager.disconnect()
 
 # Yeh line app define hone ke baad aani chahiye
 #app.include_router(websocket_router, prefix="/api/v1")
